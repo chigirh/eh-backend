@@ -1,9 +1,9 @@
 package mysql
 
 import (
-	"adapter/config"
 	"adapter/gateways/entities"
 	"app/usecases/ports"
+	"conf/config"
 	"context"
 	"domain/models"
 	"fmt"
@@ -65,14 +65,14 @@ func (gateway *UserGateway) FetchByUserId(ctx context.Context, userId string) (*
 func newDbConnection() (database *gorm.DB, err error) {
 	dbConnectInfo := fmt.Sprintf(
 		`%s:%s@tcp(%s:%s)/%s?charset=utf8&parseTime=True&loc=Local`,
-		config.Config.DbUserName,
-		config.Config.DbUserPassword,
-		config.Config.DbHost,
-		config.Config.DbPort,
-		config.Config.DbName,
+		config.Config.Mysql.DbUserName,
+		config.Config.Mysql.DbUserPassword,
+		config.Config.Mysql.DbHost,
+		config.Config.Mysql.DbPort,
+		config.Config.Mysql.DbName,
 	)
 
-	db, err := gorm.Open(config.Config.DbDriverName, dbConnectInfo)
+	db, err := gorm.Open(config.Config.Mysql.DbDriverName, dbConnectInfo)
 	if err != nil {
 		fmt.Print(err)
 	}

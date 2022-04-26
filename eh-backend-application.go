@@ -14,5 +14,5 @@ func main() {
 		fmt.Printf("failed to create UserDriver: %s\n", err)
 		os.Exit(2)
 	}
-	userDriver.ServeUsers(ctx, ":8000")
+	userDriver.Start(ctx)
 }

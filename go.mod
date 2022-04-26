@@ -9,7 +9,6 @@ require (
 	app v0.0.0-00010101000000-000000000000 // indirect
 	domain v0.0.0-00010101000000-000000000000 // indirect
 	github.com/go-sql-driver/mysql v1.6.0 // indirect
-	github.com/google/uuid v1.3.0 // indirect
 	github.com/google/wire v0.5.0 // indirect
 	github.com/jinzhu/gorm v1.9.16 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect

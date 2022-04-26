@@ -2,13 +2,15 @@ package drivers
 
 import (
 	"adapter/controllers"
+	"conf/config"
 	"context"
+	"fmt"
 
 	"github.com/labstack/echo"
 )
 
-type User interface {
-	ServeUsers(ctx context.Context, address string)
+type Server interface {
+	Start(ctx context.Context)
 }
 
 type UserDriver struct {
@@ -16,15 +18,15 @@ type UserDriver struct {
 	controller controllers.UserApi
 }
 
-func NewUserDriver(echo *echo.Echo, controller controllers.UserApi) User {
+func NewUserDriver(echo *echo.Echo, controller controllers.UserApi) Server {
 	return &UserDriver{
 		echo:       echo,
 		controller: controller,
 	}
 }
 
-func (driver *UserDriver) ServeUsers(ctx context.Context, address string) {
+func (driver *UserDriver) Start(ctx context.Context) {
 	driver.echo.GET("/users/:userId", driver.controller.Get(ctx))
 	driver.echo.POST("/users", driver.controller.Post(ctx))
-	driver.echo.Logger.Fatal(driver.echo.Start(address))
+	driver.echo.Logger.Fatal(driver.echo.Start(fmt.Sprintf(":%d", config.Config.Server.ServerPort)))
 }

@@ -13,7 +13,7 @@ import (
 	"github.com/labstack/echo"
 )
 
-func InitializeUserDriver(ctx context.Context) (User, error) {
+func InitializeUserDriver(ctx context.Context) (Server, error) {
 	wire.Build(echo.New, NewInputFactory, NewRepositoryFactory, controllers.NewUserController, NewUserDriver)
 	return &UserDriver{}, nil
 }

@@ -16,13 +16,13 @@ import (
 
 // Injectors from wire.go:
 
-func InitializeUserDriver(ctx context.Context) (User, error) {
+func InitializeUserDriver(ctx context.Context) (Server, error) {
 	echoEcho := echo.New()
 	inputFactory := NewInputFactory()
 	repositoryFactory := NewRepositoryFactory()
 	userApi := controllers.NewUserController(inputFactory, repositoryFactory)
-	user := NewUserDriver(echoEcho, userApi)
-	return user, nil
+	server := NewUserDriver(echoEcho, userApi)
+	return server, nil
 }
 
 // wire.go:
