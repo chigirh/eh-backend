@@ -1,8 +1,8 @@
 package main
 
 import (
-	"conf/drivers"
 	"context"
+	"eh-backend-api/conf/drivers"
 	"fmt"
 	"os"
 )

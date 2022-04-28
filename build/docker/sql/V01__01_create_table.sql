@@ -7,7 +7,7 @@ CREATE TABLE IF NOT EXISTS `users`(
 
 CREATE TABLE IF NOT EXISTS `passwords`(
     `user_id` VARCHAR(64) comment 'user id',
-    `password` text comment 'password is encrypted',
+    `password` text comment 'password is encrypted of SHA-256',
     PRIMARY KEY(`user_id`),
     FOREIGN KEY `fk_users`(`user_id`) REFERENCES `users`(`user_id`)
 );
