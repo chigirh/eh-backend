@@ -2,6 +2,7 @@ package drivers
 
 import (
 	"context"
+	"eh-backend-api/adapter/controllers"
 	"eh-backend-api/adapter/controllers/auth"
 	"eh-backend-api/adapter/controllers/user"
 	"eh-backend-api/conf/config"
@@ -33,6 +34,9 @@ func NewDriver(
 }
 
 func (driver *Driver) Start(ctx context.Context) {
+	// custom validator
+	driver.echo.Validator = controllers.NewValidator()
+
 	// users
 	driver.echo.GET("/users/:userId", driver.userController.Get(ctx))
 	driver.echo.POST("/users", driver.userController.Post(ctx))
