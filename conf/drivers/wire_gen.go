@@ -8,6 +8,7 @@ package drivers
 
 import (
 	"context"
+	"eh-backend-api/adapter/controllers"
 	"eh-backend-api/adapter/controllers/auth"
 	"eh-backend-api/adapter/controllers/user"
 	"eh-backend-api/adapter/gateways/mysql"
@@ -20,13 +21,14 @@ import (
 
 func InitializeDriver(ctx context.Context) (Server, error) {
 	echoEcho := echo.New()
+	requestMapper := controllers.NewRequestMapper()
 	userRepository := mysql.NewUserRepository()
 	userInputPort := interactors.NewUserInputPort(userRepository)
 	authRepository := mysql.NewAnthRepository()
 	tokenRepository := redis.NewTokenRepository()
 	authInputPort := interactors.NewAuthIputPort(authRepository, userRepository, tokenRepository)
-	userApi := user.NewUserController(userInputPort, authInputPort)
-	authApi := auth.NewAuthController(authInputPort)
+	userApi := user.NewUserController(requestMapper, userInputPort, authInputPort)
+	authApi := auth.NewAuthController(requestMapper, authInputPort)
 	server := NewDriver(echoEcho, userApi, authApi)
 	return server, nil
 }

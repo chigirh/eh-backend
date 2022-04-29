@@ -5,6 +5,7 @@ package drivers
 
 import (
 	"context"
+	"eh-backend-api/adapter/controllers"
 	"eh-backend-api/adapter/controllers/auth"
 	"eh-backend-api/adapter/controllers/user"
 	"eh-backend-api/adapter/gateways/mysql"
@@ -21,6 +22,8 @@ func InitializeDriver(ctx context.Context) (Server, error) {
 		NewDriver,
 		// echo
 		echo.New,
+		// commons
+		controllers.NewRequestMapper,
 		// user
 		user.NewUserController,
 		interactors.NewUserInputPort,

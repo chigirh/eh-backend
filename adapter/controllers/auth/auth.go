@@ -17,13 +17,14 @@ type AuthApi interface {
 }
 
 type AuthController struct {
-	inputPort ports.AuthInputPort
+	requestMapper controllers.RequestMapper
+	inputPort     ports.AuthInputPort
 }
 
 func (it *AuthController) Post(ctx context.Context) func(c echo.Context) error {
 	return func(c echo.Context) error {
 		req := new(Request)
-		if error := c.Bind(req); error != nil {
+		if error := it.requestMapper.Parse(c, req); error != nil {
 			return error
 		}
 
@@ -44,7 +45,7 @@ func (it *AuthController) Post(ctx context.Context) func(c echo.Context) error {
 func (it *AuthController) Login(ctx context.Context) func(c echo.Context) error {
 	return func(c echo.Context) error {
 		req := new(Request)
-		if error := c.Bind(req); error != nil {
+		if error := it.requestMapper.Parse(c, req); error != nil {
 			return error
 		}
 
@@ -59,27 +60,29 @@ func (it *AuthController) Login(ctx context.Context) func(c echo.Context) error 
 		}
 
 		res := LoginResponse{SessionToken: *token}
-
 		return c.JSON(http.StatusOK, res)
 	}
 }
 
 // dto
-type Request struct {
-	UserName string `json:"user_name"`
-	Password string `json:"password"`
-}
+type (
+	Request struct {
+		UserName string `json:"user_name" validate:"required,max=64"`
+		Password string `json:"password" validate:"required"`
+	}
 
-type LoginResponse struct {
-	SessionToken models.SessionToken `json:"session_token"`
-}
+	LoginResponse struct {
+		SessionToken models.SessionToken `json:"session_token"`
+	}
+)
 
 // di
 type InputFactory func(ports.AuthRepository) ports.AuthInputPort
 type RepositoryFactory func() ports.AuthRepository
 
-func NewAuthController(inputPort ports.AuthInputPort) AuthApi {
+func NewAuthController(requestMapper controllers.RequestMapper, inputPort ports.AuthInputPort) AuthApi {
 	return &AuthController{
-		inputPort: inputPort,
+		requestMapper: requestMapper,
+		inputPort:     inputPort,
 	}
 }

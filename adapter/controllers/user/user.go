@@ -19,17 +19,46 @@ type UserApi interface {
 }
 
 type UserController struct {
-	inputPort ports.UserInputPort
-	authPort  ports.AuthInputPort
+	requestMapper controllers.RequestMapper
+	inputPort     ports.UserInputPort
+	authPort      ports.AuthInputPort
 }
 
 func (it *UserController) Get(ctx context.Context) func(c echo.Context) error {
 
 	return func(c echo.Context) error {
 		userId := c.Param("userId")
-		user, _ := it.inputPort.GetUser(ctx, models.UserName(userId))
+
+		// If session token is set, have admin.
+		token, err := it.requestMapper.GetSessionToken(c)
+		if err != nil {
+			return err
+		}
+		usrl, err := it.authPort.GetUserRole(ctx, token)
+		if err != nil {
+			return controllers.ErrorHandle(c, err)
+		}
+		if !usrl.HaveAdmin() {
+			return c.JSON(http.StatusForbidden, controllers.ErrorResponse{Message: "Requires admin"})
+		}
+
+		user, err := it.inputPort.GetUser(ctx, models.UserName(userId))
+
+		if err != nil {
+			return controllers.ErrorHandle(c, err)
+		}
+
 		res := new(GetResponse)
-		res.User = UserDto{Id: string(user.UserId), FirstName: user.Firstname, FamilyName: user.FamilyName}
+		res.User = UserDto{
+			Id:         string(user.UserId),
+			FirstName:  user.Firstname,
+			FamilyName: user.FamilyName,
+			Password:   "",
+		}
+		for i := 0; i < len(user.Roles); i++ {
+			res.User.Roles = append(res.User.Roles, string(user.Roles[i]))
+		}
+
 		return c.JSON(http.StatusOK, res)
 	}
 }
@@ -39,7 +68,7 @@ func (it *UserController) Post(ctx context.Context) func(c echo.Context) error {
 	return func(c echo.Context) error {
 
 		req := new(PostRequest)
-		if err := c.Bind(req); err != nil {
+		if err := it.requestMapper.Parse(c, req); err != nil {
 			return err
 		}
 
@@ -86,29 +115,33 @@ func (it *UserController) Post(ctx context.Context) func(c echo.Context) error {
 }
 
 // dto -->
-type GetResponse struct {
-	User UserDto `json:"user"`
-}
+type (
+	GetResponse struct {
+		User UserDto `json:"user" validate:"required"`
+	}
 
-type PostRequest struct {
-	User UserDto `json:"user"`
-}
+	PostRequest struct {
+		User UserDto `json:"user" validate:"required"`
+	}
 
-type UserDto struct {
-	Id         string   `json:"id"`
-	FirstName  string   `json:"first_name"`
-	FamilyName string   `json:"family_name"`
-	Password   string   `json:"password"`
-	Roles      []string `json:"roles"`
-}
+	UserDto struct {
+		Id         string   `json:"id" validate:"required,max=64"`
+		FirstName  string   `json:"first_name" validate:"required,max=300"`
+		FamilyName string   `json:"family_name" validate:"required,max=300"`
+		Password   string   `json:"password" validate:"required"`
+		Roles      []string `json:"roles" validate:"min=1,unique"`
+	}
+)
 
 // di
 func NewUserController(
+	requestMapper controllers.RequestMapper,
 	inputPost ports.UserInputPort,
 	authPort ports.AuthInputPort,
 ) UserApi {
 	return &UserController{
-		inputPort: inputPost,
-		authPort:  authPort,
+		requestMapper: requestMapper,
+		inputPort:     inputPost,
+		authPort:      authPort,
 	}
 }

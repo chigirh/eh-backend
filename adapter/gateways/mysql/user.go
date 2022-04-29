@@ -56,24 +56,31 @@ func (it *UserGateway) AddUser(ctx context.Context, user models.User) error {
 }
 
 func (it *UserGateway) FetchByUserId(ctx context.Context, userId models.UserName) (*models.User, error) {
-
-	result := []*entities.User{}
-	error := it.db.Where("user_id = ?", userId).Find(&result).Error
-
-	if error != nil {
-		return nil, error
+	// user
+	userResult := []*entities.User{}
+	if err := it.db.Where("user_id = ?", userId).Find(&userResult).Error; err != nil {
+		return nil, err
 	}
 
-	if len(result) == 0 {
+	if len(userResult) == 0 {
 		return nil, nil
 	}
 
-	entity := result[0]
+	entity := userResult[0]
 
 	model := models.User{
 		UserId:     models.UserName(entity.UserId),
 		Firstname:  entity.FirstName,
 		FamilyName: entity.FamilyName,
+	}
+
+	roleResult := []*entities.Role{}
+	if err := it.db.Where("user_id = ?", userId).Find(&roleResult).Error; err != nil {
+		return nil, err
+	}
+
+	for i := 0; i < len(roleResult); i++ {
+		model.Roles = append(model.Roles, models.Role(roleResult[0].Role))
 	}
 	return &model, nil
 
