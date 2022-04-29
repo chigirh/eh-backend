@@ -2,7 +2,7 @@
 ## api specs
 ### Login Apis
 #### ログイン [POST:/login]
-+ Request
+<details><summary>Request</summary><div>
     + Body
         ```json
         {
@@ -10,46 +10,40 @@
             "password":"secret"// required
         }
         ```
+</div></details>
 
-+ Response 200 (application/json)
-
+<details><summary>Response 200 (application/json)</summary><div>
     + Body
 
         ```json
         {
-            "user": {
-                "id": "admin1",
-                "first_name": "admin",
-                "family_name": "developper",
-                "password": "", // always empty
-                "roles": [
-                    "ADMIN"
-                ]
-            }
+            "session_token": "c9a882ce-b2f4-465a-821b-2871f9325fd1"
         }
         ```
+</div></details>
 
-+ Response 401 (application/json)
+<details><summary>Response 401 (application/json)</summary><div>
 
     + Body
-
         ```json
         {
             "message": "Error message"
         }
         ```
+</div></details>
 
 ### User Apis
 #### ユーザーデータ取得 [GET:/users/${user_name}]
-+ Request
+<details><summary>Request</summary><div>
     + Header
         ```json
         // required
         // issue with login api
         x-session-token:e261c5e5-02ad-49da-a90d-19a6c6eecb75
         ```
-+ Response 200 (application/json)
+</div></details>
 
+<details><summary>Response 200 (application/json)</summary><div>
     + Body
 
         ```json
@@ -65,11 +59,27 @@
             }
         }
         ```
+</div></details>
 
-+ Response 401 (application/json)
-+ Response 403 (application/json)
-+ Response 404 (application/json)
+<details><summary>Response 401 (application/json)</summary><div>
+    + Body
+        ```json
+        {
+            "message": "Error message"
+        }
+        ```
+</div></details>
 
+<details><summary>Response 403 (application/json)</summary><div>
+    + Body
+        ```json
+        {
+            "message": "Error message"
+        }
+        ```
+</div></details>
+
+<details><summary>Response 404 (application/json)</summary><div>
     + Body
 
         ```json
@@ -77,9 +87,10 @@
             "message": "Error message"
         }
         ```
+</div></details>
 
 #### ユーザーデータ登録 [POST:/users]
-+ Request
+<details><summary>Request</summary><div>
     + Header
         ```json
         // optional
@@ -101,18 +112,32 @@
             }
         }
         ```
-+ Response 200 (application/json)
+</div></details>
 
+<details><summary>Response 200 (application/json)</summary><div>
     + Body
 
         ```json
         {}
         ```
-
-+ Response 401 (application/json)
-+ Response 403 (application/json)
-+ Response 409 (application/json)
-
+</div></details>
+<details><summary>Response 401 (application/json)</summary><div>
+    + Body
+        ```json
+        {
+            "message": "Error message"
+        }
+        ```
+</div></details>
+<details><summary>Response 403 (application/json)</summary><div>
+    + Body
+        ```json
+        {
+            "message": "Error message"
+        }
+        ```
+</div></details>
+<details><summary>Response 409 (application/json)</summary><div>
     + Body
 
         ```json
@@ -120,3 +145,4 @@
             "message": "Error message"
         }
         ```
+</div></details>
