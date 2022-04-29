@@ -17,28 +17,38 @@ type AuthApi interface {
 }
 
 type AuthController struct {
-	inputFactory      InputFactory
-	repositoryFactory RepositoryFactory
-}
-
-func (it *AuthController) NewInputPort() ports.AuthInputPort {
-	return it.inputFactory(it.repositoryFactory())
+	inputPort ports.AuthInputPort
 }
 
 func (it *AuthController) Post(ctx context.Context) func(c echo.Context) error {
 	return func(c echo.Context) error {
-		return c.JSON(http.StatusNotImplemented, "")
+		req := new(Request)
+		if error := c.Bind(req); error != nil {
+			return error
+		}
+
+		err := it.inputPort.UpdatePassword(
+			ctx,
+			models.UserName(req.UserName),
+			models.Password(req.Password),
+		)
+
+		if err != nil {
+			return controllers.ErrorHandle(c, err)
+		}
+
+		return c.JSON(http.StatusOK, controllers.DefaultResponse)
 	}
 }
 
 func (it *AuthController) Login(ctx context.Context) func(c echo.Context) error {
 	return func(c echo.Context) error {
-		req := new(LoginRequest)
+		req := new(Request)
 		if error := c.Bind(req); error != nil {
 			return error
 		}
 
-		token, err := it.NewInputPort().AhtuAndCreateToken(
+		token, err := it.inputPort.AhtuAndCreateToken(
 			ctx,
 			models.UserName(req.UserName),
 			models.Password(req.Password),
@@ -55,7 +65,7 @@ func (it *AuthController) Login(ctx context.Context) func(c echo.Context) error 
 }
 
 // dto
-type LoginRequest struct {
+type Request struct {
 	UserName string `json:"user_name"`
 	Password string `json:"password"`
 }
@@ -68,12 +78,8 @@ type LoginResponse struct {
 type InputFactory func(ports.AuthRepository) ports.AuthInputPort
 type RepositoryFactory func() ports.AuthRepository
 
-func NewAuthController(
-	inputFactory InputFactory,
-	repositoryFactory RepositoryFactory,
-) AuthApi {
+func NewAuthController(inputPort ports.AuthInputPort) AuthApi {
 	return &AuthController{
-		inputFactory:      inputFactory,
-		repositoryFactory: repositoryFactory,
+		inputPort: inputPort,
 	}
 }

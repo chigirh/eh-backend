@@ -10,13 +10,7 @@ type UserInteractor struct {
 	Repository ports.UserRepository
 }
 
-func NewUserInputPort(repository ports.UserRepository) ports.UserInputPort {
-	return &UserInteractor{
-		Repository: repository,
-	}
-}
-
-func (u *UserInteractor) AddUser(ctx context.Context, user *models.User) error {
+func (u *UserInteractor) AddUser(ctx context.Context, user models.User) error {
 
 	err := u.Repository.AddUser(ctx, user)
 	if err != nil {
@@ -25,11 +19,18 @@ func (u *UserInteractor) AddUser(ctx context.Context, user *models.User) error {
 	return nil
 }
 
-func (u *UserInteractor) GetUser(ctx context.Context, userId string) (*models.User, error) {
+func (u *UserInteractor) GetUser(ctx context.Context, userId models.UserName) (*models.User, error) {
 	user, err := u.Repository.FetchByUserId(ctx, userId)
 	if err != nil {
 		return user, err
 	}
 
 	return user, nil
+}
+
+// di
+func NewUserInputPort(repository ports.UserRepository) ports.UserInputPort {
+	return &UserInteractor{
+		Repository: repository,
+	}
 }

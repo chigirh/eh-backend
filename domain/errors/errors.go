@@ -1,7 +1,6 @@
 package errors
 
 import (
-	"eh-backend-api/domain/models"
 	"fmt"
 )
 
@@ -10,15 +9,15 @@ type NotFoundError struct {
 }
 
 func (e *NotFoundError) Error() string {
-	return fmt.Sprintf("Not found:%v", e.Sources)
+	return fmt.Sprintf("Not found:%s", e.Sources)
 }
 
 type AuthenticationError struct {
-	UserName models.UserName
+	Sources string
 }
 
 func (e *AuthenticationError) Error() string {
-	return fmt.Sprintf("Authentication error:%v", e.UserName)
+	return fmt.Sprintf("Authentication error:%s", e.Sources)
 }
 
 type SystemError struct {
@@ -26,5 +25,5 @@ type SystemError struct {
 }
 
 func (e *SystemError) Error() string {
-	return fmt.Sprintf("Internal server error. message:%v", e.Message)
+	return fmt.Sprintf("Internal server error. message:%s", e.Message)
 }

@@ -6,9 +6,20 @@ import (
 )
 
 type AuthInputPort interface {
+	UpdatePassword(ctx context.Context, userName models.UserName, password models.Password) error
 	AhtuAndCreateToken(ctx context.Context, userName models.UserName, password models.Password) (*models.SessionToken, error)
+	GetUserRole(ctx context.Context, sessionToken models.SessionToken) (*models.UserRole, error)
 }
 
 type AuthRepository interface {
-	Has(ctx context.Context, userName models.UserName, password models.Password) (bool, error)
+	HasUserName(ctx context.Context, userName models.UserName) (bool, error)
+	HasPassword(ctx context.Context, userName models.UserName, password models.Password) (bool, error)
+	Insert(ctx context.Context, userName models.UserName, password models.Password) error
+	Update(ctx context.Context, userName models.UserName, password models.Password) error
+	FetchRoles(ctx context.Context, userName models.UserName) ([]models.Role, error)
+}
+
+type TokenRepository interface {
+	Insert(ctx context.Context, sessionToken models.SessionToken, userName models.UserName) error
+	Fetch(ctx context.Context, sessionToken models.SessionToken) (*models.UserName, error)
 }

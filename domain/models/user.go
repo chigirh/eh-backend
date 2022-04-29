@@ -1,17 +1,9 @@
 package models
 
 type User struct {
-	UserId     string
+	UserId     UserName
 	Firstname  string
 	FamilyName string
-}
-
-func (p *User) Set(
-	userId string,
-	firstname string,
-	familyName string,
-) {
-	p.UserId = userId
-	p.Firstname = firstname
-	p.FamilyName = familyName
+	Password   Password
+	Roles      []Role
 }

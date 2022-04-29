@@ -2,6 +2,7 @@ package drivers
 
 import (
 	"context"
+	"eh-backend-api/adapter/controllers/auth"
 	"eh-backend-api/adapter/controllers/user"
 	"eh-backend-api/conf/config"
 	"fmt"
@@ -13,20 +14,32 @@ type Server interface {
 	Start(ctx context.Context)
 }
 
-type UserDriver struct {
-	echo       *echo.Echo
-	controller user.UserApi
+type Driver struct {
+	echo           *echo.Echo
+	userController user.UserApi
+	authController auth.AuthApi
 }
 
-func NewUserDriver(echo *echo.Echo, controller user.UserApi) Server {
-	return &UserDriver{
-		echo:       echo,
-		controller: controller,
+func NewDriver(
+	echo *echo.Echo,
+	userController user.UserApi,
+	authController auth.AuthApi,
+) Server {
+	return &Driver{
+		echo:           echo,
+		userController: userController,
+		authController: authController,
 	}
 }
 
-func (driver *UserDriver) Start(ctx context.Context) {
-	driver.echo.GET("/users/:userId", driver.controller.Get(ctx))
-	driver.echo.POST("/users", driver.controller.Post(ctx))
+func (driver *Driver) Start(ctx context.Context) {
+	// users
+	driver.echo.GET("/users/:userId", driver.userController.Get(ctx))
+	driver.echo.POST("/users", driver.userController.Post(ctx))
+
+	// auth
+	driver.echo.POST("/login", driver.authController.Login(ctx))
+	driver.echo.POST("/auth/", driver.authController.Post(ctx))
+
 	driver.echo.Logger.Fatal(driver.echo.Start(fmt.Sprintf(":%d", config.Config.Server.ServerPort)))
 }

@@ -8,29 +8,25 @@ package drivers
 
 import (
 	"context"
+	"eh-backend-api/adapter/controllers/auth"
 	"eh-backend-api/adapter/controllers/user"
 	"eh-backend-api/adapter/gateways/mysql"
+	"eh-backend-api/adapter/gateways/redis"
 	"eh-backend-api/app/usecases/interactors"
 	"github.com/labstack/echo"
 )
 
 // Injectors from wire.go:
 
-func InitializeUserDriver(ctx context.Context) (Server, error) {
+func InitializeDriver(ctx context.Context) (Server, error) {
 	echoEcho := echo.New()
-	inputFactory := NewInputFactory()
-	repositoryFactory := NewRepositoryFactory()
-	userApi := user.NewUserController(inputFactory, repositoryFactory)
-	server := NewUserDriver(echoEcho, userApi)
+	userRepository := mysql.NewUserRepository()
+	userInputPort := interactors.NewUserInputPort(userRepository)
+	authRepository := mysql.NewAnthRepository()
+	tokenRepository := redis.NewTokenRepository()
+	authInputPort := interactors.NewAuthIputPort(authRepository, userRepository, tokenRepository)
+	userApi := user.NewUserController(userInputPort, authInputPort)
+	authApi := auth.NewAuthController(authInputPort)
+	server := NewDriver(echoEcho, userApi, authApi)
 	return server, nil
-}
-
-// wire.go:
-
-func NewInputFactory() user.InputFactory {
-	return interactors.NewUserInputPort
-}
-
-func NewRepositoryFactory() user.RepositoryFactory {
-	return mysql.NewUserRepository
 }

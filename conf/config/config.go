@@ -9,6 +9,7 @@ import (
 
 type ConfigList struct {
 	Mysql  MysqlConfig
+	Redis  RedisConfig
 	Server ServerConfig
 }
 
@@ -21,9 +22,14 @@ type MysqlConfig struct {
 	DbPort         string
 }
 
+type RedisConfig struct {
+	RedisHost string
+	RedisPort string
+}
+
 type ServerConfig struct {
 	ServerPort int
-	ApiKey     string
+	MasterKey  string
 }
 
 var Config ConfigList
@@ -44,13 +50,19 @@ func init() {
 		DbPort:         cfg.Section("db").Key("db_port").String(),
 	}
 
+	redis := RedisConfig{
+		RedisHost: cfg.Section("redis").Key("redis_host").String(),
+		RedisPort: cfg.Section("redis").Key("redis_port").String(),
+	}
+
 	server := ServerConfig{
 		ServerPort: cfg.Section("server").Key("server_port").MustInt(),
-		ApiKey:     cfg.Section("server").Key("api_key").String(),
+		MasterKey:  cfg.Section("server").Key("master_key").String(),
 	}
 
 	Config = ConfigList{
 		Mysql:  mysql,
 		Server: server,
+		Redis:  redis,
 	}
 }
