@@ -12,6 +12,14 @@ func (e *NotFoundError) Error() string {
 	return fmt.Sprintf("Not found:%s", e.Sources)
 }
 
+type AlreadyExistsError struct {
+	Sources string
+}
+
+func (e *AlreadyExistsError) Error() string {
+	return fmt.Sprintf("Already exists:%s", e.Sources)
+}
+
 type AuthenticationError struct {
 	Sources string
 }

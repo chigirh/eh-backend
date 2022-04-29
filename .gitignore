@@ -36,5 +36,5 @@ out/
 ### VS Code ###
 .vscode/
 
-/build/mysql/data
-/build/redis
+/build/docker/mysql/data
+/build/docker/redis

@@ -46,8 +46,6 @@ func (it *AuthGateway) HasPassword(
 	pw := []byte(string(password))
 	sha256 := sha256.Sum256(pw)
 
-	fmt.Println(fmt.Sprintf("%x", sha256))
-
 	result := []*entities.Password{}
 	err := it.db.Where("user_id = ? AND password = ?", userName, fmt.Sprintf("%x", sha256)).Find(&result).Error
 

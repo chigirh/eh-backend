@@ -28,9 +28,37 @@ func (it *UserController) Get(ctx context.Context) func(c echo.Context) error {
 
 	return func(c echo.Context) error {
 		userId := c.Param("userId")
-		user, _ := it.inputPort.GetUser(ctx, models.UserName(userId))
+
+		// If session token is set, have admin.
+		token, err := it.requestMapper.GetSessionToken(c)
+		if err != nil {
+			return err
+		}
+		usrl, err := it.authPort.GetUserRole(ctx, token)
+		if err != nil {
+			return controllers.ErrorHandle(c, err)
+		}
+		if !usrl.HaveAdmin() {
+			return c.JSON(http.StatusForbidden, controllers.ErrorResponse{Message: "Requires admin"})
+		}
+
+		user, err := it.inputPort.GetUser(ctx, models.UserName(userId))
+
+		if err != nil {
+			return controllers.ErrorHandle(c, err)
+		}
+
 		res := new(GetResponse)
-		res.User = UserDto{Id: string(user.UserId), FirstName: user.Firstname, FamilyName: user.FamilyName}
+		res.User = UserDto{
+			Id:         string(user.UserId),
+			FirstName:  user.Firstname,
+			FamilyName: user.FamilyName,
+			Password:   "",
+		}
+		for i := 0; i < len(user.Roles); i++ {
+			res.User.Roles = append(res.User.Roles, string(user.Roles[i]))
+		}
+
 		return c.JSON(http.StatusOK, res)
 	}
 }

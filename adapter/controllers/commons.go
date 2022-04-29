@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"eh-backend-api/domain/errors"
+	"eh-backend-api/domain/models"
 	"fmt"
 	"net/http"
 
@@ -21,6 +22,8 @@ func ErrorHandle(c echo.Context, err error) error {
 	switch err.(type) {
 	case *errors.NotFoundError:
 		return c.JSON(http.StatusNotFound, ErrorResponse{Message: err.Error()})
+	case *errors.AlreadyExistsError:
+		return c.JSON(http.StatusConflict, ErrorResponse{Message: err.Error()})
 	case *errors.AuthenticationError:
 		return c.JSON(http.StatusUnauthorized, ErrorResponse{Message: err.Error()})
 	case *errors.SystemError:
@@ -53,6 +56,16 @@ func (it *RequestMapper) Parse(c echo.Context, i interface{}) error {
 		return echo.NewHTTPError(http.StatusBadRequest, ErrorResponse{Message: err.Error()})
 	}
 	return nil
+}
+
+func (it *RequestMapper) GetSessionToken(c echo.Context) (models.SessionToken, error) {
+	stkn := c.Request().Header.Get("x-session-token")
+
+	if stkn == "" {
+		return "", echo.NewHTTPError(http.StatusBadRequest, ErrorResponse{Message: "x-session-token is required."})
+	}
+
+	return models.SessionToken(stkn), nil
 }
 
 func NewRequestMapper() RequestMapper {
