@@ -20,8 +20,8 @@ type UserApi interface {
 
 type UserController struct {
 	requestMapper controllers.RequestMapper
-	inputPort     ports.UserInputPort
 	authPort      ports.AuthInputPort
+	inputPort     ports.UserInputPort
 }
 
 func (it *UserController) Get(ctx context.Context) func(c echo.Context) error {
@@ -136,12 +136,12 @@ type (
 // di
 func NewUserController(
 	requestMapper controllers.RequestMapper,
-	inputPost ports.UserInputPort,
 	authPort ports.AuthInputPort,
+	inputPost ports.UserInputPort,
 ) UserApi {
 	return &UserController{
 		requestMapper: requestMapper,
-		inputPort:     inputPost,
 		authPort:      authPort,
+		inputPort:     inputPost,
 	}
 }

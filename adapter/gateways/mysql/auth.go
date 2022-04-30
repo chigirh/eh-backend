@@ -8,13 +8,10 @@ import (
 	"eh-backend-api/domain/models"
 	"fmt"
 
-	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/mysql"
 )
 
-type AuthGateway struct {
-	db *gorm.DB
-}
+type AuthGateway struct{}
 
 // return false on error.
 func (it *AuthGateway) HasUserName(
@@ -22,8 +19,13 @@ func (it *AuthGateway) HasUserName(
 	userName models.UserName,
 ) (bool, error) {
 
+	db, err := NewDbConnection()
+	if err != nil {
+		return false, err
+	}
+
 	result := []*entities.Password{}
-	err := it.db.Where("user_id = ?", string(userName)).Find(&result).Error
+	err = db.Where("user_id = ?", string(userName)).Find(&result).Error
 
 	if err != nil {
 		return false, err
@@ -43,11 +45,16 @@ func (it *AuthGateway) HasPassword(
 	password models.Password,
 ) (bool, error) {
 
+	db, err := NewDbConnection()
+	if err != nil {
+		return false, err
+	}
+
 	pw := []byte(string(password))
 	sha256 := sha256.Sum256(pw)
 
 	result := []*entities.Password{}
-	err := it.db.Where("user_id = ? AND password = ?", userName, fmt.Sprintf("%x", sha256)).Find(&result).Error
+	err = db.Where("user_id = ? AND password = ?", userName, fmt.Sprintf("%x", sha256)).Find(&result).Error
 
 	if err != nil {
 		return false, err
@@ -65,15 +72,28 @@ func (it *AuthGateway) Insert(
 	userName models.UserName,
 	password models.Password,
 ) error {
+
+	db, err := NewDbConnection()
+	if err != nil {
+		return err
+	}
+
+	tx := db.Begin()
+
 	pw := []byte(string(password))
 	sha256 := sha256.Sum256(pw)
 
-	err := it.db.Create(&entities.Password{
+	err = tx.Create(&entities.Password{
 		UserId:   string(userName),
 		Password: fmt.Sprintf("%x", sha256),
 	}).Error
 
-	return err
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	return nil
 }
 
 func (it *AuthGateway) Update(
@@ -81,13 +101,26 @@ func (it *AuthGateway) Update(
 	userName models.UserName,
 	password models.Password,
 ) error {
+
+	db, err := NewDbConnection()
+	if err != nil {
+		return err
+	}
+
+	tx := db.Begin()
+
 	pw := []byte(string(password))
 	sha256 := sha256.Sum256(pw)
-	err := it.db.Model(&entities.Password{}).
+	err = tx.Model(&entities.Password{}).
 		Where("user_id = ?", string(userName)).
 		Updates(&entities.Password{
 			Password: fmt.Sprintf("%x", sha256),
 		}).Error
+
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
 
 	return err
 }
@@ -96,8 +129,14 @@ func (it *AuthGateway) FetchRoles(
 	ctx context.Context,
 	userName models.UserName,
 ) ([]models.Role, error) {
+
+	db, err := NewDbConnection()
+	if err != nil {
+		return nil, err
+	}
+
 	result := []*entities.Role{}
-	error := it.db.Where("user_id = ?", string(userName)).Find(&result).Error
+	error := db.Where("user_id = ?", string(userName)).Find(&result).Error
 
 	if error != nil {
 		return nil, error
@@ -127,9 +166,5 @@ func (it *AuthGateway) FetchRoles(
 
 // di
 func NewAnthRepository() ports.AuthRepository {
-	db, err := NewDbConnection()
-	if err != nil {
-		panic(err.Error())
-	}
-	return &AuthGateway{db}
+	return &AuthGateway{}
 }

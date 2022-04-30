@@ -7,6 +7,7 @@ import (
 	"context"
 	"eh-backend-api/adapter/controllers"
 	"eh-backend-api/adapter/controllers/auth"
+	"eh-backend-api/adapter/controllers/schedule"
 	"eh-backend-api/adapter/controllers/user"
 	"eh-backend-api/adapter/gateways/mysql"
 	"eh-backend-api/adapter/gateways/redis"
@@ -33,6 +34,10 @@ func InitializeDriver(ctx context.Context) (Server, error) {
 		interactors.NewAuthIputPort,
 		mysql.NewAnthRepository,
 		redis.NewTokenRepository,
+		// schedule
+		schedule.NewScheduleController,
+		interactors.NewScheduleInputPort,
+		mysql.NewScheduleRepository,
 	)
 	return &Driver{}, nil
 }

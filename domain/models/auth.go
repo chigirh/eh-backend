@@ -1,16 +1,17 @@
 package models
 
-type UserName string
+type (
+	UserName     string
+	Password     string
+	SessionToken string
+	Role         string
+)
 
-type Password string
-
-type SessionToken string
-
-type Role string
-
-var RoleAadmin = Role("ADMIN")
-var RoleCorp = Role("CORP")
-var RoleGene = Role("GENE")
+const (
+	RoleAadmin = Role("ADMIN")
+	RoleCorp   = Role("CORP")
+	RoleGene   = Role("GENE")
+)
 
 type UserRole struct {
 	UserName UserName
