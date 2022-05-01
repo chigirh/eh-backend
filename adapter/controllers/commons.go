@@ -5,19 +5,26 @@ import (
 	"eh-backend-api/domain/models"
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/go-playground/validator"
 	"github.com/labstack/echo"
 )
 
-type ErrorResponse struct {
-	Message string `json:"message"`
-}
+// responses
+type (
+	ErrorResponse struct {
+		Message string `json:"message"`
+	}
 
-type EmptyResponse struct{}
+	EmptyResponse struct{}
+)
 
-var DefaultResponse = EmptyResponse{}
+var (
+	DefaultResponse = EmptyResponse{}
+)
 
+//  errors
 func ErrorHandle(c echo.Context, err error) error {
 	switch err.(type) {
 	case *errors.NotFoundError:
@@ -32,21 +39,37 @@ func ErrorHandle(c echo.Context, err error) error {
 	return c.JSON(http.StatusInternalServerError, ErrorResponse{Message: fmt.Sprintf("Internal server error. message:%s", err.Error())})
 }
 
+// validaton
 type CustomValidator struct {
 	validator *validator.Validate
 }
 
 // SEE:https://github.com/go-playground/validator
 // https://pkg.go.dev/gopkg.in/go-playground/validator.v9#section-readme
+// https://qiita.com/RunEagler/items/ad79fc860c3689797ccc
 func (cv *CustomValidator) Validate(i interface{}) error {
 	return cv.validator.Struct(i)
 }
 
 func NewValidator() echo.Validator {
-	return &CustomValidator{validator: validator.New()}
+	validator := validator.New()
+	validator.RegisterValidation("date", isDate)
+
+	return &CustomValidator{validator: validator}
 }
 
-type RequestMapper struct{}
+func isDate(fl validator.FieldLevel) bool {
+	_, err := time.Parse("2006-01-02", fl.Field().String())
+	if err != nil {
+		return false
+	}
+	return true
+}
+
+// requests
+type (
+	RequestMapper struct{}
+)
 
 func (it *RequestMapper) Parse(c echo.Context, i interface{}) error {
 	if err := c.Bind(i); err != nil {
@@ -70,4 +93,14 @@ func (it *RequestMapper) GetSessionToken(c echo.Context) (models.SessionToken, e
 
 func NewRequestMapper() RequestMapper {
 	return RequestMapper{}
+}
+
+// converter
+func ToDate(src string) time.Time {
+	dt, _ := time.Parse("2006-01-02", src)
+	return dt
+}
+
+func ToString(t time.Time) string {
+	return t.Format("2006-01-02")
 }

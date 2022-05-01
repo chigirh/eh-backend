@@ -10,6 +10,7 @@ import (
 	"context"
 	"eh-backend-api/adapter/controllers"
 	"eh-backend-api/adapter/controllers/auth"
+	"eh-backend-api/adapter/controllers/schedule"
 	"eh-backend-api/adapter/controllers/user"
 	"eh-backend-api/adapter/gateways/mysql"
 	"eh-backend-api/adapter/gateways/redis"
@@ -22,13 +23,16 @@ import (
 func InitializeDriver(ctx context.Context) (Server, error) {
 	echoEcho := echo.New()
 	requestMapper := controllers.NewRequestMapper()
-	userRepository := mysql.NewUserRepository()
-	userInputPort := interactors.NewUserInputPort(userRepository)
 	authRepository := mysql.NewAnthRepository()
+	userRepository := mysql.NewUserRepository()
 	tokenRepository := redis.NewTokenRepository()
 	authInputPort := interactors.NewAuthIputPort(authRepository, userRepository, tokenRepository)
-	userApi := user.NewUserController(requestMapper, userInputPort, authInputPort)
+	userInputPort := interactors.NewUserInputPort(userRepository)
+	userApi := user.NewUserController(requestMapper, authInputPort, userInputPort)
 	authApi := auth.NewAuthController(requestMapper, authInputPort)
-	server := NewDriver(echoEcho, userApi, authApi)
+	scheduleRepository := mysql.NewScheduleRepository()
+	scheduleInputPort := interactors.NewScheduleInputPort(scheduleRepository)
+	scheduleApi := schedule.NewScheduleController(requestMapper, authInputPort, scheduleInputPort)
+	server := NewDriver(echoEcho, userApi, authApi, scheduleApi)
 	return server, nil
 }

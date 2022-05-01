@@ -1,17 +1,26 @@
 package entities
 
-type User struct {
-	UserId     string `json:"user_id"`
-	FirstName  string `json:"first_name"`
-	FamilyName string `json:"family_name"`
-}
+type (
+	User struct {
+		UserId     string `json:"user_id"`
+		FirstName  string `json:"first_name"`
+		FamilyName string `json:"family_name"`
+	}
 
-type Password struct {
-	UserId   string `json:"user_id"`
-	Password string `json:"password"`
-}
+	Password struct {
+		UserId   string `json:"user_id"`
+		Password string `json:"password"`
+	}
 
-type Role struct {
-	UserId string `json:"user_id"`
-	Role   string `json:"role"`
-}
+	Role struct {
+		UserId string `json:"user_id"`
+		Role   string `json:"role"`
+	}
+
+	Schedule struct {
+		ScheduleId string `json:"schedule_id"`
+		UserId     string `json:"user_id"`
+		Date       string `json:"date"`
+		Period     int    `json:"period"`
+	}
+)

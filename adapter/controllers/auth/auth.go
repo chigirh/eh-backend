@@ -77,9 +77,6 @@ type (
 )
 
 // di
-type InputFactory func(ports.AuthRepository) ports.AuthInputPort
-type RepositoryFactory func() ports.AuthRepository
-
 func NewAuthController(requestMapper controllers.RequestMapper, inputPort ports.AuthInputPort) AuthApi {
 	return &AuthController{
 		requestMapper: requestMapper,

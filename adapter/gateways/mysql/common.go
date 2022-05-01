@@ -5,12 +5,14 @@ import (
 	"fmt"
 	"log"
 
+	"time"
+
 	"github.com/jinzhu/gorm"
 )
 
 // gorm
 // SEE:https://gorm.io/ja_JP/docs/index.html
-func NewDbConnection() (database *gorm.DB, err error) {
+func NewDbConnection() (*gorm.DB, error) {
 	dbConnectInfo := fmt.Sprintf(
 		`%s:%s@tcp(%s:%s)/%s?charset=utf8&parseTime=True&loc=Local`,
 		config.Config.Mysql.DbUserName,
@@ -25,4 +27,13 @@ func NewDbConnection() (database *gorm.DB, err error) {
 		log.Fatalln(err.Error())
 	}
 	return db, nil
+}
+
+func toSqlString(t time.Time) string {
+	return t.Format("2006-01-02")
+}
+
+func ToDate(src string) time.Time {
+	dt, _ := time.Parse(time.RFC3339, src)
+	return dt
 }

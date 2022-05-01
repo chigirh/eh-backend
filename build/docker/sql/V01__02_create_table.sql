@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS `users`(
 CREATE TABLE IF NOT EXISTS `roles`(
     `user_id` VARCHAR(64) comment 'user id',
     `role` VARCHAR(10) comment 'ADMIN,CORP,GENE',
-    PRIMARY KEY(`user_id`,`role`)
+    PRIMARY KEY(`user_id`, `role`)
 );
 
 CREATE TABLE IF NOT EXISTS `passwords`(

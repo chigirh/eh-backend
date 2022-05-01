@@ -8,17 +8,19 @@ import (
 	"eh-backend-api/domain/models"
 	"fmt"
 
-	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/mysql"
 )
 
-type UserGateway struct {
-	db *gorm.DB
-}
+type UserGateway struct{}
 
 func (it *UserGateway) AddUser(ctx context.Context, user models.User) error {
 
-	tx := it.db.Begin()
+	db, err := NewDbConnection()
+	if err != nil {
+		return err
+	}
+
+	tx := db.Begin()
 
 	// users
 	if err := tx.Create(&entities.User{
@@ -57,8 +59,13 @@ func (it *UserGateway) AddUser(ctx context.Context, user models.User) error {
 
 func (it *UserGateway) FetchByUserId(ctx context.Context, userId models.UserName) (*models.User, error) {
 	// user
+	db, err := NewDbConnection()
+	if err != nil {
+		return nil, err
+	}
+
 	userResult := []*entities.User{}
-	if err := it.db.Where("user_id = ?", userId).Find(&userResult).Error; err != nil {
+	if err := db.Where("user_id = ?", userId).Find(&userResult).Error; err != nil {
 		return nil, err
 	}
 
@@ -75,7 +82,7 @@ func (it *UserGateway) FetchByUserId(ctx context.Context, userId models.UserName
 	}
 
 	roleResult := []*entities.Role{}
-	if err := it.db.Where("user_id = ?", userId).Find(&roleResult).Error; err != nil {
+	if err := db.Where("user_id = ?", userId).Find(&roleResult).Error; err != nil {
 		return nil, err
 	}
 
@@ -88,9 +95,5 @@ func (it *UserGateway) FetchByUserId(ctx context.Context, userId models.UserName
 
 // di
 func NewUserRepository() ports.UserRepository {
-	db, err := NewDbConnection()
-	if err != nil {
-		panic(err.Error())
-	}
-	return &UserGateway{db}
+	return &UserGateway{}
 }
