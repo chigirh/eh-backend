@@ -1,6 +1,6 @@
 HELP.md
 .gradle
-build/
+# build/
 !gradle/wrapper/gradle-wrapper.jar
 !**/src/main/**/build/
 !**/src/test/**/build/
@@ -35,6 +35,6 @@ out/
 
 ### VS Code ###
 .vscode/
-
-/build/docker/mysql/data
-/build/docker/redis
+/tmp
+/docker/mysql/data
+/docker/redis/dump.rdb
