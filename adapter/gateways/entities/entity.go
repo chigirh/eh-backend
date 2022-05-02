@@ -23,4 +23,12 @@ type (
 		Date       string `json:"date"`
 		Period     int    `json:"period"`
 	}
+
+	MasterSchedule struct {
+		Period     int `json:"period"`
+		HourFrom   int `json:"hour_from"`
+		MinuteFrom int `json:"minute_from"`
+		HourTo     int `json:"hour_to"`
+		MinuteTo   int `json:"minute_to"`
+	}
 )

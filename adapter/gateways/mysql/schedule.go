@@ -69,6 +69,7 @@ func (it *ScheduleGateway) Add(
 
 	tx.Commit()
 
+	db.Close()
 	return nil
 }
 
@@ -84,7 +85,7 @@ func (it *ScheduleGateway) FetchByDays(
 	}
 
 	result := []entities.AggregateSchedule{}
-	err = db.Debug().Model(&entities.Schedule{}).
+	err = db.Debug().
 		Select("`date`, `period`, count(`user_id`) AS `count`").
 		Table("schedules").
 		Where("? <= `date` AND `date` <= ?", toSqlString(from), toSqlString(to)).
@@ -113,6 +114,75 @@ func (it *ScheduleGateway) FetchByDays(
 
 		agg, _ := m[d]
 		agg.Periods = append(agg.Periods, models.Period{Period: r.Period, Count: r.Count})
+	}
+
+	db.Close()
+	return model, nil
+}
+
+func (it *ScheduleGateway) FetchByPeriod(
+	ctx context.Context,
+	date time.Time,
+	period int,
+) ([]*models.User, error) {
+	db, err := NewDbConnection()
+	if err != nil {
+		return nil, err
+	}
+
+	result := []entities.User{}
+	err = db.Debug().
+		Select("u.`user_id`, u.`first_name`, u.`family_name`").
+		Table("`schedules` AS s").
+		Joins("inner join `users` as u on s.`user_id` = u.`user_id`").
+		Where("s.`date` = ? and `period` = ?", toSqlString(date), period).
+		Find(&result).Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	model := []*models.User{}
+
+	for i := 0; i < len(result); i++ {
+		u := result[i]
+		model = append(model, &models.User{
+			UserId:     models.UserName(u.UserId),
+			Firstname:  u.FirstName,
+			FamilyName: u.FamilyName,
+		})
+	}
+
+	db.Close()
+	return model, nil
+}
+
+func (it *ScheduleGateway) FetchPeriodDetail(ctx context.Context) ([]*models.PeriodDetail, error) {
+	db, err := NewDbConnection()
+	if err != nil {
+		return nil, err
+	}
+
+	result := []entities.MasterSchedule{}
+	err = db.Debug().Model(entities.MasterSchedule{}).
+		Table("`m_schedule` AS s").
+		Find(&result).Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	model := []*models.PeriodDetail{}
+
+	for i := 0; i < len(result); i++ {
+		p := result[i]
+		model = append(model, &models.PeriodDetail{
+			Period:     p.Period,
+			HourFrom:   p.HourFrom,
+			MinuteFrom: p.MinuteFrom,
+			HourTo:     p.HourTo,
+			MinuteTo:   p.MinuteTo,
+		})
 	}
 	return model, nil
 }

@@ -43,6 +43,34 @@ docker-compose up -d
             "message": "Error message"
         }
         ```
+### Auth Apis
+#### パスワード変更 [POST:/auth]
++ Request
+    + Body
+        ```json
+        {
+            "before":"secret", // required
+            "after":"secret2" // required
+        }
+        ```
+
++ Response 200 (application/json)
+
+    + Body
+
+        ```json
+        {}
+        ```
+
++ Response 401 (application/json)
+
+    + Body
+
+        ```json
+        {
+            "message": "Error message"
+        }
+        ```
 
 ### User Apis
 #### ユーザーデータ取得 [GET:/users/${user_name}]
@@ -176,6 +204,54 @@ docker-compose up -d
     + Query parameter
         ```json
         /schedules/aggregate?from=2022-05-01&to=2022-05-10
+        ```
++ Response 200 (application/json)
+
+    + Body
+
+        ```json
+        {
+            "aggregates": [
+                {
+                    "date": "2022-05-01",
+                    "periods": [
+                        {
+                            "period": 1,
+                            "count": 10
+                        },
+                        {
+                            "period": 2,
+                            "count": 11
+                        }
+                    ]
+                },
+                {
+                    "date": "2022-05-02",
+                    "periods": [
+                        {
+                            "period": 12,
+                            "count": 12
+                        },
+                        {
+                            "period": 13,
+                            "count": 12
+                        }
+                    ]
+                }
+            ]
+        }
+        ```
+#### 詳細取得 [POST:/schedules/details]
++ Request
+    + Header
+        ```json
+        // optional
+        // issue with login api
+        x-session-token:e261c5e5-02ad-49da-a90d-19a6c6eecb75
+        ```
+    + Query parameter
+        ```json
+        /details?date=2022-05-01&period=1
         ```
 + Response 200 (application/json)
 

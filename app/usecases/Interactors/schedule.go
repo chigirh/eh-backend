@@ -36,6 +36,28 @@ func (it *ScheduleInteractor) Aggregate(
 	return aggregates, nil
 }
 
+func (it *ScheduleInteractor) GetByPeriod(
+	ctx context.Context,
+	date time.Time,
+	period int,
+) ([]*models.User, error) {
+	users, err := it.ScheduleRepository.FetchByPeriod(ctx, date, period)
+	if err != nil {
+		return nil, err
+	}
+
+	return users, nil
+}
+
+func (it *ScheduleInteractor) GetPeriodDetail(ctx context.Context) ([]*models.PeriodDetail, error) {
+	details, err := it.ScheduleRepository.FetchPeriodDetail(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return details, nil
+}
+
 // di
 func NewScheduleInputPort(shceduleRepository ports.ScheduleRepository) ports.ScheduleInputPort {
 	return &ScheduleInteractor{

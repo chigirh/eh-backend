@@ -35,6 +35,7 @@ func (it *AuthGateway) HasUserName(
 		return false, nil
 	}
 
+	db.Close()
 	return true, nil
 }
 
@@ -64,6 +65,7 @@ func (it *AuthGateway) HasPassword(
 		return false, nil
 	}
 
+	db.Close()
 	return true, nil
 }
 
@@ -93,6 +95,7 @@ func (it *AuthGateway) Insert(
 		return err
 	}
 
+	db.Close()
 	return nil
 }
 
@@ -111,7 +114,7 @@ func (it *AuthGateway) Update(
 
 	pw := []byte(string(password))
 	sha256 := sha256.Sum256(pw)
-	err = tx.Model(&entities.Password{}).
+	err = tx.Debug().Model(&entities.Password{}).
 		Where("user_id = ?", string(userName)).
 		Updates(&entities.Password{
 			Password: fmt.Sprintf("%x", sha256),
@@ -122,6 +125,8 @@ func (it *AuthGateway) Update(
 		return err
 	}
 
+	tx.Commit()
+	db.Close()
 	return err
 }
 
@@ -161,6 +166,7 @@ func (it *AuthGateway) FetchRoles(
 		}
 	}
 
+	db.Close()
 	return mdls, nil
 }
 
