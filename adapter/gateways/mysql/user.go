@@ -54,6 +54,7 @@ func (it *UserGateway) AddUser(ctx context.Context, user models.User) error {
 
 	tx.Commit()
 
+	db.Close()
 	return nil
 }
 
@@ -89,6 +90,8 @@ func (it *UserGateway) FetchByUserId(ctx context.Context, userId models.UserName
 	for i := 0; i < len(roleResult); i++ {
 		model.Roles = append(model.Roles, models.Role(roleResult[0].Role))
 	}
+
+	db.Close()
 	return &model, nil
 
 }

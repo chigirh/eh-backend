@@ -49,10 +49,12 @@ func (driver *Driver) Start(ctx context.Context) {
 
 	// auth
 	driver.echo.POST("/login", driver.authApi.Login(ctx))
-	driver.echo.POST("/auth/", driver.authApi.Post(ctx))
+	driver.echo.POST("/auth", driver.authApi.Post(ctx))
 
 	// shcedule
-	driver.echo.GET("/schedules/aggregate", driver.scheduleApi.Aggregate(ctx))
+	driver.echo.GET("/schedules/aggregate", driver.scheduleApi.AggregateGet(ctx))
+	driver.echo.GET("/schedules/details", driver.scheduleApi.DetailsGet(ctx))
+	driver.echo.GET("/schedules/periods", driver.scheduleApi.PeriodsGet(ctx))
 	driver.echo.POST("/schedules", driver.scheduleApi.Post(ctx))
 
 	driver.echo.Logger.Fatal(driver.echo.Start(fmt.Sprintf(":%d", config.Config.Server.ServerPort)))

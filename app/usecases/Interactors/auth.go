@@ -5,7 +5,6 @@ import (
 	"eh-backend-api/app/usecases/ports"
 	"eh-backend-api/domain/errors"
 	"eh-backend-api/domain/models"
-	"fmt"
 	"log"
 
 	"github.com/google/uuid"
@@ -20,35 +19,22 @@ type AuthInteractor struct {
 func (it *AuthInteractor) UpdatePassword(
 	ctx context.Context,
 	userName models.UserName,
-	password models.Password,
+	before models.Password,
+	after models.Password,
 ) error {
 
-	user, err := it.userRepository.FetchByUserId(ctx, userName)
+	success, err := it.authRepository.HasPassword(ctx, userName, before)
 
 	if err != nil {
 		log.Println(err)
 		return &errors.SystemError{Message: err.Error()}
 	}
 
-	if user == nil {
-		return &errors.NotFoundError{Sources: fmt.Sprintf("user_name=%s", string(userName))}
+	if !success {
+		return &errors.AuthenticationError{Sources: string(userName)}
 	}
-
-	has, err := it.authRepository.HasUserName(ctx, userName)
-
-	if err != nil {
-		log.Println(err)
+	if err := it.authRepository.Update(ctx, userName, after); err != nil {
 		return &errors.SystemError{Message: err.Error()}
-	}
-
-	if has {
-		if err := it.authRepository.Update(ctx, userName, password); err != nil {
-			return &errors.SystemError{Message: err.Error()}
-		}
-	} else {
-		if err := it.authRepository.Insert(ctx, userName, password); err != nil {
-			return &errors.SystemError{Message: err.Error()}
-		}
 	}
 
 	return nil

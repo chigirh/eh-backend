@@ -19,4 +19,12 @@ type (
 		Date   time.Time
 		Period int
 	}
+
+	PeriodDetail struct {
+		Period     int
+		HourFrom   int
+		MinuteFrom int
+		HourTo     int
+		MinuteTo   int
+	}
 )

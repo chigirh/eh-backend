@@ -12,7 +12,9 @@ import (
 )
 
 type ScheduleApi interface {
-	Aggregate(ctx context.Context) func(c echo.Context) error
+	AggregateGet(ctx context.Context) func(c echo.Context) error
+	DetailsGet(ctx context.Context) func(c echo.Context) error
+	PeriodsGet(ctx context.Context) func(c echo.Context) error
 	Post(ctx context.Context) func(c echo.Context) error
 }
 
@@ -22,14 +24,14 @@ type ScheduleController struct {
 	inputPort     ports.ScheduleInputPort
 }
 
-func (it *ScheduleController) Aggregate(ctx context.Context) func(c echo.Context) error {
+func (it *ScheduleController) AggregateGet(ctx context.Context) func(c echo.Context) error {
 	return func(c echo.Context) error {
 		req := new(AggregateGetRequest)
 		if error := it.requestMapper.Parse(c, req); error != nil {
 			return error
 		}
 
-		// If session token is set, have general.
+		// If session token is set, have corporation administrator or corporation.
 		token, err := it.requestMapper.GetSessionToken(c)
 		if err != nil {
 			return err
@@ -62,6 +64,88 @@ func (it *ScheduleController) Aggregate(ctx context.Context) func(c echo.Context
 		}
 
 		res := AggregateGetResponse{Aggregates: resAggs}
+
+		return c.JSON(http.StatusOK, res)
+	}
+}
+
+func (it *ScheduleController) DetailsGet(ctx context.Context) func(c echo.Context) error {
+	return func(c echo.Context) error {
+		req := new(DetailsGetRequest)
+		if error := it.requestMapper.Parse(c, req); error != nil {
+			return error
+		}
+
+		// If session token is set, have general.have corporation administrator or corporation.
+		token, err := it.requestMapper.GetSessionToken(c)
+		if err != nil {
+			return err
+		}
+		usrl, err := it.authPort.GetUserRole(ctx, token)
+		if err != nil {
+			return controllers.ErrorHandle(c, err)
+		}
+		if !usrl.HaveAdmin() && !usrl.HaveCorp() {
+			return c.JSON(http.StatusForbidden, controllers.ErrorResponse{Message: "Requires administrator or corporation"})
+		}
+
+		// usecase
+		var users []*models.User
+		users, err = it.inputPort.GetByPeriod(ctx, controllers.ToDate(req.Date), req.Period)
+
+		if err != nil {
+			return controllers.ErrorHandle(c, err)
+		}
+
+		details := []*UserDto{}
+		for i := 0; i < len(users); i++ {
+			u := users[i]
+			details = append(details, &UserDto{
+				UserName:   string(u.UserId),
+				FirstName:  u.Firstname,
+				FamilyName: u.FamilyName,
+			})
+		}
+
+		res := DetailsGetResponse{Details: details}
+
+		return c.JSON(http.StatusOK, res)
+	}
+}
+
+func (it *ScheduleController) PeriodsGet(ctx context.Context) func(c echo.Context) error {
+	return func(c echo.Context) error {
+		// If session token is set, have any.
+		token, err := it.requestMapper.GetSessionToken(c)
+		if err != nil {
+			return err
+		}
+		_, err = it.authPort.GetUserRole(ctx, token)
+		if err != nil {
+			return controllers.ErrorHandle(c, err)
+		}
+
+		// usecase
+		var peripds []*models.PeriodDetail
+		peripds, err = it.inputPort.GetPeriodDetail(ctx)
+
+		if err != nil {
+			return controllers.ErrorHandle(c, err)
+		}
+
+		resPeriods := []*PeriodsDto{}
+		for i := 0; i < len(peripds); i++ {
+			p := peripds[i]
+			resPeriods = append(resPeriods, &PeriodsDto{
+				Period:     p.Period,
+				HourFrom:   p.HourFrom,
+				MinuteFrom: p.MinuteFrom,
+				HourTo:     p.HourTo,
+				MinuteTo:   p.MinuteTo,
+			})
+		}
+
+		res := PeriodsGetResponse{Periods: resPeriods}
 
 		return c.JSON(http.StatusOK, res)
 	}
@@ -126,6 +210,33 @@ type (
 	PeriodDto struct {
 		Period int `json:"period"`
 		Count  int `json:"count"`
+	}
+
+	DetailsGetRequest struct {
+		Date   string `query:"date" validate:"required,date"`
+		Period int    `query:"period" validate:"required,min=1,max=48"`
+	}
+
+	DetailsGetResponse struct {
+		Details []*UserDto `json:"details"`
+	}
+
+	UserDto struct {
+		UserName   string `json:"user_name"`
+		FirstName  string `json:"first_name"`
+		FamilyName string `json:"family_name"`
+	}
+
+	PeriodsGetResponse struct {
+		Periods []*PeriodsDto `json:"periods"`
+	}
+
+	PeriodsDto struct {
+		Period     int `json:"period"`
+		HourFrom   int `json:"hour_from"`
+		MinuteFrom int `json:"minute_from"`
+		HourTo     int `json:"hour_to"`
+		MinuteTo   int `json:"minute_to"`
 	}
 
 	PostRequest struct {

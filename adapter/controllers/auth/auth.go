@@ -23,15 +23,26 @@ type AuthController struct {
 
 func (it *AuthController) Post(ctx context.Context) func(c echo.Context) error {
 	return func(c echo.Context) error {
-		req := new(Request)
+		req := new(PostRequest)
 		if error := it.requestMapper.Parse(c, req); error != nil {
 			return error
 		}
 
-		err := it.inputPort.UpdatePassword(
+		// If session token is set, have any.
+		token, err := it.requestMapper.GetSessionToken(c)
+		if err != nil {
+			return err
+		}
+		usrl, err := it.inputPort.GetUserRole(ctx, token)
+		if err != nil {
+			return controllers.ErrorHandle(c, err)
+		}
+
+		err = it.inputPort.UpdatePassword(
 			ctx,
-			models.UserName(req.UserName),
-			models.Password(req.Password),
+			usrl.UserName,
+			models.Password(req.Before),
+			models.Password(req.After),
 		)
 
 		if err != nil {
@@ -44,7 +55,7 @@ func (it *AuthController) Post(ctx context.Context) func(c echo.Context) error {
 
 func (it *AuthController) Login(ctx context.Context) func(c echo.Context) error {
 	return func(c echo.Context) error {
-		req := new(Request)
+		req := new(LoginRequest)
 		if error := it.requestMapper.Parse(c, req); error != nil {
 			return error
 		}
@@ -66,9 +77,14 @@ func (it *AuthController) Login(ctx context.Context) func(c echo.Context) error 
 
 // dto
 type (
-	Request struct {
+	LoginRequest struct {
 		UserName string `json:"user_name" validate:"required,max=64"`
 		Password string `json:"password" validate:"required"`
+	}
+
+	PostRequest struct {
+		Before string `json:"before" validate:"required"`
+		After  string `json:"after" validate:"required"`
 	}
 
 	LoginResponse struct {
