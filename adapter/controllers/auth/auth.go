@@ -60,7 +60,7 @@ func (it *AuthController) Login(ctx context.Context) func(c echo.Context) error 
 			return error
 		}
 
-		token, err := it.inputPort.AhtuAndCreateToken(
+		token, user, err := it.inputPort.AhtuAndCreateToken(
 			ctx,
 			models.UserName(req.UserName),
 			models.Password(req.Password),
@@ -70,7 +70,19 @@ func (it *AuthController) Login(ctx context.Context) func(c echo.Context) error 
 			return controllers.ErrorHandle(c, err)
 		}
 
-		res := LoginResponse{SessionToken: *token}
+		roles := []string{}
+		for i := 0; i < len(user.Roles); i++ {
+			roles = append(roles, string(user.Roles[i]))
+		}
+		res := LoginResponse{
+			SessionToken: token,
+			User: &UserDto{
+				UserName:   string(user.UserId),
+				FirstName:  user.Firstname,
+				FamilyName: user.FamilyName,
+				Roles:      roles,
+			},
+		}
 		return c.JSON(http.StatusOK, res)
 	}
 }
@@ -88,7 +100,15 @@ type (
 	}
 
 	LoginResponse struct {
-		SessionToken models.SessionToken `json:"session_token"`
+		SessionToken *models.SessionToken `json:"session_token"`
+		User         *UserDto             `json:"user"`
+	}
+
+	UserDto struct {
+		UserName   string   `json:"user_name"`
+		FirstName  string   `json:"first_name"`
+		FamilyName string   `json:"family_name"`
+		Roles      []string `json:"roles"`
 	}
 )
 

@@ -4,6 +4,7 @@ import (
 	"context"
 	"eh-backend-api/adapter/controllers"
 	"eh-backend-api/adapter/controllers/auth"
+	"eh-backend-api/adapter/controllers/health"
 	"eh-backend-api/adapter/controllers/schedule"
 	"eh-backend-api/adapter/controllers/user"
 	"eh-backend-api/conf/config"
@@ -11,6 +12,7 @@ import (
 	"log"
 
 	"github.com/labstack/echo"
+	"github.com/labstack/echo/middleware"
 )
 
 type Server interface {
@@ -19,6 +21,7 @@ type Server interface {
 
 type Driver struct {
 	echo        *echo.Echo
+	healthApi   health.HealthApi
 	userApi     user.UserApi
 	authApi     auth.AuthApi
 	scheduleApi schedule.ScheduleApi
@@ -26,12 +29,14 @@ type Driver struct {
 
 func NewDriver(
 	echo *echo.Echo,
+	healthApi health.HealthApi,
 	userApi user.UserApi,
 	authApi auth.AuthApi,
 	scheduleApi schedule.ScheduleApi,
 ) Server {
 	return &Driver{
 		echo:        echo,
+		healthApi:   healthApi,
 		userApi:     userApi,
 		authApi:     authApi,
 		scheduleApi: scheduleApi,
@@ -40,9 +45,13 @@ func NewDriver(
 
 func (driver *Driver) Start(ctx context.Context) {
 	log.Println("api start.")
+	// cors
+	driver.echo.Use(middleware.CORS())
 	// custom validator
 	driver.echo.Validator = controllers.NewValidator()
 
+	// health
+	driver.echo.GET("/health", driver.healthApi.Get(ctx))
 	// users
 	driver.echo.GET("/users/:userId", driver.userApi.Get(ctx))
 	driver.echo.POST("/users", driver.userApi.Post(ctx))

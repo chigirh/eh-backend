@@ -84,36 +84,35 @@ func (it *ScheduleGateway) FetchByDays(
 		return nil, err
 	}
 
-	result := []entities.AggregateSchedule{}
-	err = db.Debug().
-		Select("`date`, `period`, count(`user_id`) AS `count`").
-		Table("schedules").
-		Where("? <= `date` AND `date` <= ?", toSqlString(from), toSqlString(to)).
-		Group("`date`, `period`").Find(&result).Error
+	datas := []string{}
 
-	if err != nil {
-		return nil, err
+	for current := from; current.Before(to) || current.Equal(to); current = current.AddDate(0, 0, 1) {
+		println()
+		datas = append(datas, toSqlString(current))
 	}
 
-	if len(result) == 0 {
-		return nil, nil
-	}
-
-	m := map[string]*models.DailyAggregate{}
 	model := []*models.DailyAggregate{}
+	for i := 0; i < len(datas); i++ {
+		d := datas[i]
+		d += "T00:00:00Z"
 
-	for i := 0; i < len(result); i++ {
-		r := result[i]
-		d := r.Date
-		_, has := m[d]
-		if !has {
-			agg := models.DailyAggregate{Date: ToDate(d)}
-			model = append(model, &agg)
-			m[d] = &agg
+		result := []entities.AggregateSchedule{}
+		err = db.Debug().Raw(
+			"SELECT ? AS `data`, `m`.`period`, count(`s`.`user_id`) AS `count`"+
+				"FROM (SELECT `period`,`user_id` FROM `schedules` WHERE `date` = ?) AS `s`"+
+				"RIGHT OUTER JOIN `m_schedule` AS `m` ON `s`.`period` = `m`.`period`"+
+				"GROUP BY 1,2 ORDER BY 2", d, d).Scan(&result).Error
+		if err != nil {
+			return nil, err
 		}
 
-		agg, _ := m[d]
-		agg.Periods = append(agg.Periods, models.Period{Period: r.Period, Count: r.Count})
+		agg := models.DailyAggregate{Date: ToDate(d), Periods: []models.Period{}}
+		model = append(model, &agg)
+
+		for i := 0; i < len(result); i++ {
+			r := result[i]
+			agg.Periods = append(agg.Periods, models.Period{Period: r.Period, Count: r.Count})
+		}
 	}
 
 	db.Close()

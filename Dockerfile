@@ -11,7 +11,7 @@ COPY ./ ./
 
 RUN go mod download
 
-EXPOSE 8080
+EXPOSE 9000
 
 # RUN go run eh-backend-application.go
 

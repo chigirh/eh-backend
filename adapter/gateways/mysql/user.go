@@ -83,12 +83,12 @@ func (it *UserGateway) FetchByUserId(ctx context.Context, userId models.UserName
 	}
 
 	roleResult := []*entities.Role{}
-	if err := db.Where("user_id = ?", userId).Find(&roleResult).Error; err != nil {
+	if err := db.Debug().Where("user_id = ?", userId).Find(&roleResult).Error; err != nil {
 		return nil, err
 	}
 
 	for i := 0; i < len(roleResult); i++ {
-		model.Roles = append(model.Roles, models.Role(roleResult[0].Role))
+		model.Roles = append(model.Roles, models.Role(roleResult[i].Role))
 	}
 
 	db.Close()

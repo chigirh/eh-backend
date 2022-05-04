@@ -4,7 +4,7 @@ services:
   backend:
     build: .
     ports:
-      - 8080:8080
+      - ${API_PORT}:${API_PORT}
     volumes:
       - .:/go/src/eh-backend-api
     depends_on:

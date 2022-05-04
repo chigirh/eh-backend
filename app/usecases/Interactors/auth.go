@@ -45,28 +45,30 @@ func (it *AuthInteractor) AhtuAndCreateToken(
 	ctx context.Context,
 	userName models.UserName,
 	password models.Password,
-) (*models.SessionToken, error) {
+) (*models.SessionToken, *models.User, error) {
 	success, err := it.authRepository.HasPassword(ctx, userName, password)
 
 	if err != nil {
 		log.Println(err)
-		return nil, &errors.SystemError{Message: err.Error()}
+		return nil, nil, &errors.SystemError{Message: err.Error()}
 	}
 
 	if !success {
-		return nil, &errors.AuthenticationError{Sources: string(userName)}
+		return nil, nil, &errors.AuthenticationError{Sources: string(userName)}
 	}
+
+	user, err := it.userRepository.FetchByUserId(ctx, userName)
 
 	uuid, _ := uuid.NewRandom()
 	tkn := models.SessionToken(uuid.String())
 
-	tknerr := it.tokenRepositroy.Insert(ctx, tkn, userName)
-	if tknerr != nil {
-		log.Println(tknerr)
-		return nil, &errors.SystemError{Message: err.Error()}
+	err = it.tokenRepositroy.Insert(ctx, tkn, userName)
+	if err != nil {
+		log.Println(err)
+		return nil, nil, &errors.SystemError{Message: err.Error()}
 	}
 
-	return &tkn, nil
+	return &tkn, user, nil
 
 }
 

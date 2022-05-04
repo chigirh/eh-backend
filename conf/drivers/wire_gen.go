@@ -10,6 +10,7 @@ import (
 	"context"
 	"eh-backend-api/adapter/controllers"
 	"eh-backend-api/adapter/controllers/auth"
+	"eh-backend-api/adapter/controllers/health"
 	"eh-backend-api/adapter/controllers/schedule"
 	"eh-backend-api/adapter/controllers/user"
 	"eh-backend-api/adapter/gateways/mysql"
@@ -22,6 +23,7 @@ import (
 
 func InitializeDriver(ctx context.Context) (Server, error) {
 	echoEcho := echo.New()
+	healthApi := health.NewHealthController()
 	requestMapper := controllers.NewRequestMapper()
 	authRepository := mysql.NewAnthRepository()
 	userRepository := mysql.NewUserRepository()
@@ -33,6 +35,6 @@ func InitializeDriver(ctx context.Context) (Server, error) {
 	scheduleRepository := mysql.NewScheduleRepository()
 	scheduleInputPort := interactors.NewScheduleInputPort(scheduleRepository)
 	scheduleApi := schedule.NewScheduleController(requestMapper, authInputPort, scheduleInputPort)
-	server := NewDriver(echoEcho, userApi, authApi, scheduleApi)
+	server := NewDriver(echoEcho, healthApi, userApi, authApi, scheduleApi)
 	return server, nil
 }

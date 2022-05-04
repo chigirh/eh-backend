@@ -7,6 +7,7 @@ import (
 	"context"
 	"eh-backend-api/adapter/controllers"
 	"eh-backend-api/adapter/controllers/auth"
+	"eh-backend-api/adapter/controllers/health"
 	"eh-backend-api/adapter/controllers/schedule"
 	"eh-backend-api/adapter/controllers/user"
 	"eh-backend-api/adapter/gateways/mysql"
@@ -25,6 +26,8 @@ func InitializeDriver(ctx context.Context) (Server, error) {
 		echo.New,
 		// commons
 		controllers.NewRequestMapper,
+		// health
+		health.NewHealthController,
 		// user
 		user.NewUserController,
 		interactors.NewUserInputPort,
