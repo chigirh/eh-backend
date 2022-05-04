@@ -87,7 +87,6 @@ func (it *ScheduleGateway) FetchByDays(
 	datas := []string{}
 
 	for current := from; current.Before(to) || current.Equal(to); current = current.AddDate(0, 0, 1) {
-		println()
 		datas = append(datas, toSqlString(current))
 	}
 
