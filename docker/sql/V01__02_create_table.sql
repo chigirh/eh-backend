@@ -15,7 +15,7 @@ CREATE TABLE IF NOT EXISTS `passwords`(
     `user_id` VARCHAR(64) comment 'user id',
     `password` text NOT NULL comment 'password is encrypted of SHA-256',
     PRIMARY KEY(`user_id`),
-    FOREIGN KEY `fk_users`(`user_id`) REFERENCES `users`(`user_id`)
+    FOREIGN KEY `fk_users`(`user_id`) REFERENCES `users`(`user_id`) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS `schedules`(
@@ -27,5 +27,5 @@ CREATE TABLE IF NOT EXISTS `schedules`(
     UNIQUE `unique_idx` (`user_id`, `date`, `period`),
     INDEX `date_idx` (`date`, `period`),
     FOREIGN KEY `fk_users`(`user_id`) REFERENCES `users`(`user_id`),
-    FOREIGN KEY `fk_m_schedule`(`period`) REFERENCES `m_schedule`(`period`)
+    FOREIGN KEY `fk_m_schedule`(`period`) REFERENCES `m_schedule`(`period`) ON DELETE CASCADE
 );
